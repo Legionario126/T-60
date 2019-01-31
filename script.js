@@ -162,7 +162,6 @@ platforms.push({
 //////////////////////////////////////////////////////////////Balita aliada
 class Bullet{
     constructor(x, y){
-        this.color = 'yellow';
         //this.direction = null;
         this.x = x;
         this.y = y;
@@ -194,6 +193,9 @@ class EvilBullet{
         this.speed = 15;
         this.velX = 0;
         this.velY = 0;
+        this.image= new Image()
+        this.image.src = imagenes.bullImg;
+        this.image.onload=this.draw.bind(this)
     }
     draw (){
         context.drawImage(this.image,this.x,this.y,this.width,this.height)
@@ -201,10 +203,8 @@ class EvilBullet{
 }
 let evilBullet= new EvilBullet();
 
-let bull
-
 function generateBullet(){
-    bull = new Bullet(player.x+100 , player.y+10)
+    let bull = new Bullet(player.x+100 , player.y+10)
     shootBull(bull);
 }
 
@@ -254,36 +254,37 @@ function drawPlatforms(){
   })
 }
 ////////////////////////////////Frendly bullet
-function frendBullet(){
-    if(player.shot){
-        context.fillStyle = bullet.color;
-        context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-    }
-}
-function eneBullet(){
-    if(heli.shot){
-        context.fillStyle = bullet.color;
-        context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-    }
-}
-////////////////////////////////////////TIME
-function drawTime(){
-    //context.fillText = "Time: ";
-    context.fillStyle = "green";
-    context.fillText(Math.floor(frames/60), 940,30);
-  }
-///////////////////////////////////////////////////////////////////////////////////////// Start update
-function update(){
-    context.clearRect(0,0,canvas.width,canvas.height)
-    fondo.draw();
-    frames++;
+// function frendBullet(){
+//     if(player.shot){
+//         context.fillStyle = bullet.color;
+//         context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+//     }
+// }
+// function eneBullet(){
+    //     if(heli.shot){
+        //         context.fillStyle = bullet.color;
+        //         context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        //     }
+        // }
+        ////////////////////////////////////////TIME
+        function drawTime(){
+            //context.fillText = "Time: ";
+            context.fillStyle = "green";
+            context.fillText(Math.floor(frames/60), 940,30);
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////// Start update
+        function update(){
+            context.clearRect(0,0,canvas.width,canvas.height)
+            fondo.draw();
+            frames++;
     drawTime();
     drawPlatforms();
     heli.draw();
     player.draw();
-    eneBullet()
-    frendBullet();
 
+    //eneBullet()
+    //frendBullet();
+    
 //Leyes de la fisica
 
 //Fricion
@@ -320,6 +321,9 @@ if(keys[65]){
 }
 //shoot
 // spacebar
+if(keys[32]){
+    generateBullet()
+}
 // if (keys[32]){
 //     if(shot === false){
 //         player.shot = true;
@@ -330,9 +334,6 @@ if(keys[65]){
 //     }
 // }
 
-if(keys[32]){
-    generateBullet()
-}
 ////////////////////////////////////////////////////////////////////////////check collisions plataforms
 
 ////////////////////////////////////////ya medio jala
