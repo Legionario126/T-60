@@ -20,12 +20,12 @@ let interval;
 let keys = [];
 let platforms = [];
 let evil = [];
-let ammo = [];
 let friction = 0.8;
 let gravity = 0.98;
 let frames = 0;
 let shot = false;
 let malasBullets = []
+let bullets = []
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////musica
 let music= new Audio()
@@ -57,8 +57,8 @@ let fondo=new Board();
 
 class Player{
     constructor(){
-        this.x = 5;
-        this.y = 400;
+        this.x = 800;
+        this.y = 280;
         this.width = 100;
         this.height = 100;
         this.speed = 10;
@@ -70,10 +70,10 @@ class Player{
         this.grounded = false;
         this.sx = 0;
         this.sy = 0;
-
+        // nota: no funciona poner diferentes imagenes
         // if (facing === 'right'){
             this.image= new Image();
-            this.image.src=imagenes.run;
+            this.image.src=imagenes.runLeft;
             this.image.onload=this.draw.bind(this)
         // }
         // else {
@@ -186,6 +186,7 @@ class Bullet{
         this.image.onload=this.draw.bind(this)
     }
     draw (){
+        this.x -= 10
         context.drawImage(this.image,this.x++,this.y,this.width,this.height)
     }
 }
@@ -208,23 +209,25 @@ class EvilBullet{
         this.image.onload=this.draw.bind(this)
     }
     draw (){
+        this.x += 10
         context.drawImage(this.image,this.x,this.y,this.width,this.height)
     }
 }
 let evilBullet= new EvilBullet();
 
 function generateBullet(){
-    let bull = new Bullet(player.x+100 , player.y+10)
-    shootBull(bull);
+    bullets.push(new Bullet(player.x, player.y+10))
 }
 
-function shootBull(elem){
-    elem.draw()
+function shootBull(){
+    bullets.map(bullet => {
+        bullet.draw()
+    })
 }
 
 function generateBulletMala(){
-    if(frames % 50 == 0){
-    let bull = new Bullet(player.x+100 , player.y+10)
+    if(frames % 100 == 0){
+    let bull = new Bullet(heli.x+410 , heli.y+200)
     malasBullets.push(bull)
 
     shootBullMala(malasBullets);
@@ -298,12 +301,6 @@ function frendBullet(){
         context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 }
-// function eneBullet(){
-    //     if(heli.shot){
-        //         context.fillStyle = bullet.color;
-        //         context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-        //     }
-        // }
 ////////////////////////////////////////TIME
 function drawTime(){
     //context.fillText = "Time: ";
@@ -319,12 +316,11 @@ function update(){
     drawPlatforms();
     heli.draw();
     player.draw();
-
+    shootBull() 
     generateBulletMala()
-
     //eneBullet()
     //frendBullet();
-    
+
 //Leyes de la fisica
 
 //Fricion
@@ -363,20 +359,11 @@ if(keys[65]){
 // spacebar
 if(keys[32]){
     generateBullet()
+    
 }
-// if (keys[32]){
-//     if(shot === false){
-//         player.shot = true;
-//         if (shot === true){
-//             bullets.push(new Bullet(player.x , player.y, player.vx));
-//         }
-        
-//     }
-// }
-
 ////////////////////////////////////////////////////////////////////////////check collisions plataforms
 
-////////////////////////////////////////ya medio jala
+////////////////////////////////////////ya jala
   player.grounded = false;
   platforms.forEach(function(platform){
     let direction = collisionCheck(player, platform);
@@ -395,22 +382,19 @@ if(player.grounded){
     player.velY = 0;
 }
 ///////////////////////////////////////////////////////////////////check bullet vs plataforms colition
-// bullet.grounded = false;
-//   platforms.forEach(function(platform){
-//     var direction = collisionCheck(bullet, platform);
-//     if(direction == "left" || direction == "right"){
-//       bullet.velX = 0;
-      
-//     }else if(direction == "bottom"){
-//       bullet.grounded = true;
-//       bullet.velY = 0;
-//     }else if(direction == "top"){
-//       bullet.velY *= -1;
-//     }
-//   });
-// if(bullet.grounded){
-//     bullet.velY = 0;
-// }
+  bullets.forEach(function(platform){
+    var direction = collisionCheck(bullet, platform);
+    if(direction == "left" || direction == "right"){
+      bullet.velX = 0;
+      bullets.shift(bullet);
+    }else if(direction == "bottom"){
+      bullet.velY = 0;
+      bullets.shift(bullet);
+    }else if(direction == "top"){
+      bullet.velY *= -1;
+      bullets.shift(bullet);
+    }
+  });
 //colicion bala enemiga con suelo
 let dte = collisionCheck(evilBullet, platforms);
     if (dte != null){
@@ -514,6 +498,8 @@ function moveEnemy(laBalaMala){
     laBalaMala.y-=Math.sin(angle)*1 
     laBalaMala.velX = Math.floor(Math.random() * 3)
     laBalaMala.velY= Math.floor(Math.random() * 3)
-    laBalaMala.draw()
-    console.log("Hola Mario")
+    malasBullets.map(laBalaMala => {
+        laBalaMala.draw()
+    })
+    console.log("si ves esto si esta generando balas enemigas")
 }
