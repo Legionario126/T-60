@@ -5,12 +5,14 @@ let imagenes={
     bg:"./images/enviro/5.png",
     still: "./images/still.png",
     run:"./images/spritesheet runing.png",
+    runLeft: "./images/spritesheet runing left.png",
     jump:"./images/spritesheet jump.png",
     dead:"./images/spritesheet dead.png",
     heliIntro:"./images/1.png",
     helStat1:"./images/static 1.png",
     helStat2:"./images/static 2.png",
-    bullImg: "./images/bullet.jpg"
+    bullImg: "./images/bullet.png",
+    cover: "./images/cover.jpg"
   } 
   
 let gameStarted = false;
@@ -18,10 +20,12 @@ let interval;
 let keys = [];
 let platforms = [];
 let evil = [];
+let ammo = [];
 let friction = 0.8;
 let gravity = 0.98;
 let frames = 0;
 let shot = false;
+let malasBullets = []
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////musica
 let music= new Audio()
@@ -66,24 +70,32 @@ class Player{
         this.grounded = false;
         this.sx = 0;
         this.sy = 0;
-        this.image= new Image();
-        this.image.src=imagenes.run;
-        this.image.onload=this.draw.bind(this)
+
+        // if (facing === 'right'){
+            this.image= new Image();
+            this.image.src=imagenes.run;
+            this.image.onload=this.draw.bind(this)
+        // }
+        // else {
+        //     this.image= new Image();
+        //     this.image.src=imagenes.runLeft;
+        //     this.image.onload=this.draw.bind(this)
+        // }
     }
     draw (){
-        if (frames % 10 === 0) this.sx += 580;
-            if (this.sx === 2900) this.sx = 0;
-                context.drawImage(
-                this.image,
-                this.sx,
-                this.sy,
-                580,
-                540,
-                this.x,
-                this.y,
-                this.width,
-                this.height
-                );
+            if (frames % 10 === 0) this.sx += 580;
+                if (this.sx === 2900) this.sx = 0;
+                    context.drawImage(
+                    this.image,
+                    this.sx,
+                    this.sy,
+                    580,
+                    540,
+                    this.x,
+                    this.y,
+                    this.width,
+                    this.height
+                    );
     }
 }
 
@@ -162,12 +174,10 @@ platforms.push({
 //////////////////////////////////////////////////////////////Balita aliada
 class Bullet{
     constructor(x, y){
-        //this.direction = null;
         this.x = x;
         this.y = y;
         this.width = 10;
         this.height = 10;
-        //this.grounded = false;
         this.speed = 15;
         this.velX = 0;
         this.velY = 0;
@@ -212,6 +222,26 @@ function shootBull(elem){
     elem.draw()
 }
 
+function generateBulletMala(){
+    if(frames % 50 == 0){
+    let bull = new Bullet(player.x+100 , player.y+10)
+    malasBullets.push(bull)
+
+    shootBullMala(malasBullets);
+    }
+}
+
+function shootBullMala(arrayBull){
+    arrayBull.forEach(x => {
+        x.draw()
+        moveEnemy(x)
+        //
+    })
+    
+}
+
+generateBulletMala()
+
 //////////////////////////////////////////////////////////////////////////////////////////////listeners
 
 document.body.addEventListener('keydown', function(event){
@@ -227,22 +257,30 @@ document.body.addEventListener('keyup', function(event){
 
 ///////////////////////////////////////////////////////////////////////////////////////// Intro
 function intro_screen(){
-  context.font = "50px Roboto";
-  context.fillStyle = "#0099CC";
-  context.textAlign = "center";
-  context.fillText("T-60", canvas.width/2, canvas.height/2);
-  context.font = "20px Arial";
-  context.fillText("Presiona STARP para iniciar", canvas.width/2, canvas.height/2 + 50); 
+    //poner portada chida
 }
 intro_screen();
 ///////////////////////////////////////////////////////////////////////////////////// STARP GAME
 function startGame(){
-  gameStarted = true;
-  context.clearRect(0,0,canvas.width,canvas.height);
-  interval = setInterval(function(){
+    gameStarted = true;
+    //pausas la cancion 
+    if (music.paused){
+        music.play()
+        music.loop = true;
+        alert1.play()
+    }
+    else{
+        music.pause()
+        }   
+    //rebovinar cancion
+    music.currentTime=0
+    alert1.currentTime=0
+
     context.clearRect(0,0,canvas.width,canvas.height);
-    update();
-  }, 1000/60)
+    interval = setInterval(function(){
+        context.clearRect(0,0,canvas.width,canvas.height);
+        update();
+    }, 1000/60)
 }
 ///////////////////////////////////////////////////////////////////////////////// Drawing
 
@@ -254,33 +292,35 @@ function drawPlatforms(){
   })
 }
 ////////////////////////////////Frendly bullet
-// function frendBullet(){
-//     if(player.shot){
-//         context.fillStyle = bullet.color;
-//         context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-//     }
-// }
+function frendBullet(){
+    if(player.shot){
+        context.fillStyle = bullet.color;
+        context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+    }
+}
 // function eneBullet(){
     //     if(heli.shot){
         //         context.fillStyle = bullet.color;
         //         context.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
         //     }
         // }
-        ////////////////////////////////////////TIME
-        function drawTime(){
-            //context.fillText = "Time: ";
-            context.fillStyle = "green";
-            context.fillText(Math.floor(frames/60), 940,30);
-        }
-        ///////////////////////////////////////////////////////////////////////////////////////// Start update
-        function update(){
-            context.clearRect(0,0,canvas.width,canvas.height)
-            fondo.draw();
-            frames++;
+////////////////////////////////////////TIME
+function drawTime(){
+    //context.fillText = "Time: ";
+    context.fillStyle = "green";
+    context.fillText(Math.floor(frames/60), 940,30);
+}
+///////////////////////////////////////////////////////////////////////////////////////// Start update
+function update(){
+    context.clearRect(0,0,canvas.width,canvas.height)
+    fondo.draw();
+    frames++;
     drawTime();
     drawPlatforms();
     heli.draw();
     player.draw();
+
+    generateBulletMala()
 
     //eneBullet()
     //frendBullet();
@@ -309,14 +349,14 @@ if(keys[87]){
 if(keys[68]){
     if(player.velX < player.speed){
         player.velX++;
-        facing = 'right';
+        player.facing = 'right';
     }
 }
 //Izquierda
 if(keys[65]){
     if(player.velX > -player.speed){
         player.velX--;
-        facing = 'left';
+        player.facing = 'left';
     }
 }
 //shoot
@@ -371,20 +411,11 @@ if(player.grounded){
 // if(bullet.grounded){
 //     bullet.velY = 0;
 // }
-// //colicion bala enemiga con suelo
-// let dte = collisionCheck(evilBullet, platforms);
-//     if (dte != null){
-//         heli.shot = false;
-//     }
-/////////////////////////////////////////////////////////experimento rebotar balas
-// evilBullet.x += evilBullet.vx;
-// if(evilBullet.x + evilBullet.vx >= canvas.width || evilBullet.x + evilBullet.vx < 0) {
-//     evilBullet.vx *= -1;
-// }
-// evilBullet.y += evilBullet.vy;
-// if(evilBullet.y + evilBullet.vy >= canvas.height || evilBullet.y + evilBullet.vy < 0) {
-//     evilBullet.vy *= -1;
-// }    
+//colicion bala enemiga con suelo
+let dte = collisionCheck(evilBullet, platforms);
+    if (dte != null){
+        heli.shot = false;
+    }
 
 //////////////////////////////////////////////////////////////////////////check player/evil collision
 //player vs heli
@@ -406,7 +437,7 @@ for (let i = 0; i < evil.length; i++) {
             evil[i].alive = false;
             player.shot = false;
         }
-
+        
         //si se muere heli lo saca de la pantalla
         if(!evil[i].alive){
             evil[i].x = -500;
@@ -423,11 +454,11 @@ if(heli.alive){
         heli.shot = true;
     }
 }
-    if(heli.shot){
+if(heli.shot){
         evilBullet.y += evilBullet.speed;
     }
-
-//Player Actions
+    
+    //Player Actions
 if(player.shot){
     if(bullet.direction === 'right'){
         bullet.x += bullet.speed;
@@ -443,8 +474,8 @@ context.fill();
 //algoritmo de Bliss
 //deteccion de colicion general 
 function collisionCheck(char, plat){
-  var vectorX = (char.x-14 + (char.width/2)) - (plat.x + (plat.width/2));
-  var vectorY = (char.y-10 + (char.height/2)) - (plat.y + (plat.height/2));
+    var vectorX = (char.x-14 + (char.width/2)) - (plat.x + (plat.width/2));
+    var vectorY = (char.y-10 + (char.height/2)) - (plat.y + (plat.height/2));
   
   var halfWidths = (char.width/2) + (plat.width/2);
   var halfHeights = (char.height/2) + (plat.height/2);
@@ -452,41 +483,37 @@ function collisionCheck(char, plat){
   var collisionDirection = null;
   
   if(Math.abs(vectorX) < halfWidths && Math.abs(vectorY) < halfHeights){
-    var offsetX = halfWidths - Math.abs(vectorX);
+      var offsetX = halfWidths - Math.abs(vectorX);
     var offsetY = halfHeights - Math.abs(vectorY);
     if(offsetX < offsetY){
-      if(vectorX > 0){
-        collisionDirection = "left";
-        char.x += offsetX;
-      }else{
-        collisionDirection = "right";
-        char.x -= offsetX;
-      }
+        if(vectorX > 0){
+            collisionDirection = "left";
+            char.x += offsetX;
+        }else{
+            collisionDirection = "right";
+            char.x -= offsetX;
+        }
     }else{
-      if(vectorY > 0){
-        collisionDirection = "top";
-        char.y += offsetY;
-      }else{
-        collisionDirection = "bottom";
-        char.y -= offsetY;
-      }
+        if(vectorY > 0){
+            collisionDirection = "top";
+            char.y += offsetY;
+        }else{
+            collisionDirection = "bottom";
+            char.y -= offsetY;
+        }
     }
-  }
-  return collisionDirection;
+}
+return collisionDirection;
   
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////// musiquita
-// document.querySelector('button').addEventListener('click',()=>{
-//     //pausas la cancion 
-//     if (music.paused){
-//       music.play()
-//       alert1.play()
-//     }
-//     else{
-//       music.pause()
-//     }   
-//     //rebovinar cancion
-//     music.currentTime=0
-//     alert1.currentTime=0
-//   })
+/////////////////////////////////////////////////////////experimento rebotar balas e ir dirigidas al jugador
+function moveEnemy(laBalaMala){
+    angle =Math.atan2(laBalaMala.y-player.y,laBalaMala.x-player.x)
+    laBalaMala.x -= Math.cos(angle)*1
+    laBalaMala.y-=Math.sin(angle)*1 
+    laBalaMala.velX = Math.floor(Math.random() * 3)
+    laBalaMala.velY= Math.floor(Math.random() * 3)
+    laBalaMala.draw()
+    console.log("Hola Mario")
+}
